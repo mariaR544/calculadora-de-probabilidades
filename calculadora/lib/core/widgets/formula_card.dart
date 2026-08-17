@@ -211,7 +211,6 @@ class _StatFormulaGrid extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(bottom: i + 2 < items.length ? 10 : 0),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(child: _StatFormulaCell(item: items[i])),
                 const SizedBox(width: 10),
@@ -271,36 +270,38 @@ class _RestrictionsBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(10),
-        border: Border(
-          left: BorderSide(color: AppColors.primary, width: 3),
-          top: const BorderSide(color: AppColors.border),
-          right: const BorderSide(color: AppColors.border),
-          bottom: const BorderSide(color: AppColors.border),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.info_outline_rounded,
-              size: 16, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('RESTRICCIONES', style: AppTextStyles.label),
-                const SizedBox(height: 3),
-                Text(text, style: AppTextStyles.body),
-              ],
-            ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: AppColors.surfaceAlt,
+          border: Border(
+            left: BorderSide(color: AppColors.primary, width: 3.5),
+            top: BorderSide(color: AppColors.border),
+            right: BorderSide(color: AppColors.border),
+            bottom: BorderSide(color: AppColors.border),
           ),
-        ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline_rounded,
+                size: 16, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('RESTRICCIONES', style: AppTextStyles.label),
+                  const SizedBox(height: 3),
+                  Text(text, style: AppTextStyles.body),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
