@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/distribution_graph_container.dart';
 import '../../core/widgets/parameter_text_field.dart';
 import '../../core/widgets/probability_type_selector.dart';
 import '../../core/widgets/results_panel.dart';
 import '../../core/widgets/section_title.dart';
+import '../../core/widgets/stat_summary_grid.dart';
 import '../../models/calculation_result.dart';
 import '../../models/distribution_type.dart';
 import '../../models/probability_type.dart';
 import '../../utils/validators.dart';
 import 'poisson_calculator.dart';
-import 'poisson_chart_painter.dart';
+import '../../core/widgets/explanation_bottom_sheet.dart';
 
 /// Panel del módulo Poisson.
 class PoissonPanel extends StatefulWidget {
@@ -24,15 +26,19 @@ class _PoissonPanelState extends State<PoissonPanel> {
   final _formKey = GlobalKey<FormState>();
   final _lambdaController = TextEditingController(text: '3');
   final _xController = TextEditingController(text: '2');
+  final _x2Controller = TextEditingController(text: '5');
 
   ProbabilityType _probabilityType = ProbabilityType.puntual;
   CalculationResult? _result;
   String? _errorMessage;
 
+  bool get _isRange => _probabilityType.requiresTwoInputs;
+
   @override
   void dispose() {
     _lambdaController.dispose();
     _xController.dispose();
+    _x2Controller.dispose();
     super.dispose();
   }
 
@@ -44,6 +50,7 @@ class _PoissonPanelState extends State<PoissonPanel> {
       final result = PoissonCalculator.calculate(
         lambda: double.parse(_lambdaController.text.replaceAll(',', '.')),
         x: int.parse(_xController.text),
+        x2: _isRange ? int.parse(_x2Controller.text) : null,
         type: _probabilityType,
       );
       setState(() => _result = result);
@@ -53,6 +60,30 @@ class _PoissonPanelState extends State<PoissonPanel> {
         _result = null;
       });
     }
+  }
+
+  /// Limpia todos los campos de entrada y descarta el resultado
+  /// calculado, devolviendo el panel a su estado inicial.
+  void _resetAll() {
+    setState(() {
+      _lambdaController.clear();
+      _xController.clear();
+      _x2Controller.clear();
+      _result = null;
+      _errorMessage = null;
+    });
+    _formKey.currentState?.reset();
+  }
+
+  String? _validateX2(String? v) {
+    final base = Validators.nonNegativeInt(v, label: 'xⱼ');
+    if (base != null) return base;
+    final x1 = int.tryParse(_xController.text);
+    final x2 = int.tryParse(v ?? '');
+    if (x1 != null && x2 != null && x2 < x1) {
+      return 'xⱼ debe ser mayor o igual que xᵢ';
+    }
+    return null;
   }
 
   @override
@@ -70,9 +101,29 @@ class _PoissonPanelState extends State<PoissonPanel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionTitle(
-                      text: 'Parámetros de entrada',
-                      icon: Icons.tune_rounded,
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: SectionTitle(
+                            text: 'Parámetros de entrada',
+                            icon: Icons.tune_rounded,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _resetAll,
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: const Text('Limpiar'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textSecondary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     ParameterTextField(
@@ -89,14 +140,32 @@ class _PoissonPanelState extends State<PoissonPanel> {
                     const SizedBox(height: 14),
                     ParameterTextField(
                       controller: _xController,
-                      label: 'x (NÚMERO DE OCURRENCIAS)',
-                      description:
-                          'Número de ocurrencias del evento que deseas '
-                          'evaluar. Debe ser un entero mayor o igual a 0.',
+                      label: _isRange
+                          ? 'xᵢ (LÍMITE INFERIOR)'
+                          : 'x (NÚMERO DE OCURRENCIAS)',
+                      description: _isRange
+                          ? 'Límite inferior del rango a evaluar. Entero ≥ 0.'
+                          : 'Número de ocurrencias del evento que deseas '
+                              'evaluar. Debe ser un entero mayor o igual a 0.',
                       allowDecimal: false,
+                      // Revalida también xⱼ cuando xᵢ cambia, para
+                      // mantener consistente la comparación entre ambos.
+                      onChanged: () => _formKey.currentState?.validate(),
                       validator: (v) =>
                           Validators.nonNegativeInt(v, label: 'x'),
                     ),
+                    if (_isRange) ...[
+                      const SizedBox(height: 14),
+                      ParameterTextField(
+                        controller: _x2Controller,
+                        label: 'xⱼ (LÍMITE SUPERIOR)',
+                        description:
+                            'Límite superior del rango a evaluar. Debe ser '
+                            'mayor o igual que xᵢ.',
+                        allowDecimal: false,
+                        validator: _validateX2,
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     ProbabilityTypeSelector(
                       distributionType: DistributionType.poisson,
@@ -131,35 +200,42 @@ class _PoissonPanelState extends State<PoissonPanel> {
                 distributionType: DistributionType.poisson,
                 probabilityType: _probabilityType,
               ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SectionTitle(
-                        text: 'Distribución P(X = x)',
-                        icon: Icons.bar_chart_rounded,
-                      ),
-                      const SizedBox(height: 14),
-                      SizedBox(
-                        height: 220,
-                        width: double.infinity,
-                        child: CustomPaint(
-                          painter: PoissonChartPainter(
-                            points: _result!.points,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: _Legend(),
-                      ),
-                    ],
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton.icon(
+                  onPressed: () => ExplanationBottomSheet.show(
+                    context,
+                    result: _result!,
+                    distributionType: DistributionType.poisson,
+                    probabilityType: _probabilityType,
+                    upperX:
+                        _isRange ? double.tryParse(_x2Controller.text) : null,
+                  ),
+                  icon: const Icon(Icons.lightbulb_outline_rounded, size: 16),
+                  label: const Text('Interpretación'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 8),
+              StatSummaryGrid(result: _result!),
+              const SizedBox(height: 16),
+              DistributionGraphContainer(
+                result: _result!,
+                pointLabel: 'Probabilidad (PMF)',
+                cumulativeLabel: 'Acumulativa (CDF)',
               ),
             ],
           ],
@@ -167,28 +243,4 @@ class _PoissonPanelState extends State<PoissonPanel> {
       ),
     );
   }
-}
-
-class _Legend extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _dot(AppColors.highlightStrong),
-        const SizedBox(width: 6),
-        Text('Región evaluada', style: AppTextStyles.subtitle),
-        const SizedBox(width: 16),
-        _dot(AppColors.barBase),
-        const SizedBox(width: 6),
-        Text('Resto de la distribución', style: AppTextStyles.subtitle),
-      ],
-    );
-  }
-
-  Widget _dot(Color color) => Container(
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      );
 }

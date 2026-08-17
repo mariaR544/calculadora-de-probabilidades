@@ -42,12 +42,25 @@ class _ParameterTextFieldState extends State<ParameterTextField> {
       ..addListener(() {
         setState(() => _focused = _focusNode.hasFocus);
       });
+    // Redibuja para mostrar u ocultar el ícono de borrado individual
+    // según el campo tenga o no contenido.
+    widget.controller.addListener(_handleTextChanged);
+  }
+
+  void _handleTextChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    widget.controller.removeListener(_handleTextChanged);
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _clearField() {
+    widget.controller.clear();
+    widget.onChanged?.call();
   }
 
   @override
@@ -74,6 +87,15 @@ class _ParameterTextFieldState extends State<ParameterTextField> {
           style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             suffixText: widget.suffixText,
+            suffixIcon: widget.controller.text.isEmpty
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.clear_rounded, size: 18),
+                    color: AppColors.textSecondary,
+                    splashRadius: 16,
+                    tooltip: 'Borrar campo',
+                    onPressed: _clearField,
+                  ),
           ),
         ),
         if (widget.description != null)

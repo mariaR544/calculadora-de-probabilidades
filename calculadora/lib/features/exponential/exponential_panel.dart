@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/distribution_graph_container.dart';
 import '../../core/widgets/parameter_text_field.dart';
 import '../../core/widgets/probability_type_selector.dart';
 import '../../core/widgets/results_panel.dart';
 import '../../core/widgets/section_title.dart';
+import '../../core/widgets/stat_summary_grid.dart';
 import '../../models/calculation_result.dart';
 import '../../models/distribution_type.dart';
 import '../../models/probability_type.dart';
 import '../../utils/validators.dart';
 import 'exponential_calculator.dart';
-import 'exponential_chart_painter.dart';
+import '../../core/widgets/explanation_bottom_sheet.dart';
 
 /// Panel del módulo Exponencial.
-///
-/// Muestra primero el formulario de parámetros de entrada; las
-/// fórmulas y la teoría se acceden desde el botón "Fórmulas" de
-/// [DistributionScreen] y no se repiten aquí. Al pulsar "Calcular" se
-/// muestran los resultados (probabilidad, E[X], Var(X)) y la gráfica.
-
 class ExponentialPanel extends StatefulWidget {
   const ExponentialPanel({super.key});
 
@@ -44,30 +40,43 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
     super.dispose();
   }
 
-    void _calculate() {
-        setState(() => _errorMessage = null);
-        if (!_formKey.currentState!.validate()) return;
+  void _calculate() {
+    setState(() => _errorMessage = null);
+    if (!_formKey.currentState!.validate()) return;
 
-        try {
-          final double xi = double.parse(_xiController.text.replaceAll(',', '.'));
-          final double? xj = _probabilityType.requiresTwoInputs
-              ? double.parse(_xjController.text.replaceAll(',', '.'))
-              : null;
+    try {
+      final double xi = double.parse(_xiController.text.replaceAll(',', '.'));
+      final double? xj = _probabilityType.requiresTwoInputs
+          ? double.parse(_xjController.text.replaceAll(',', '.'))
+          : null;
 
-          final result = ExponentialCalculator.calculate(
-            lambda: double.parse(_lambdaController.text.replaceAll(',', '.')),
-            xi: xi,
-            xj: xj,
-            type: _probabilityType,
-          );
-          setState(() => _result = result);
-        } on ValidationException catch (e) {
-          setState(() {
-            _errorMessage = e.message;
-            _result = null;
-          });
-        }
-      }
+      final result = ExponentialCalculator.calculate(
+        lambda: double.parse(_lambdaController.text.replaceAll(',', '.')),
+        xi: xi,
+        xj: xj,
+        type: _probabilityType,
+      );
+      setState(() => _result = result);
+    } on ValidationException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+        _result = null;
+      });
+    }
+  }
+
+  /// Limpia todos los campos de entrada y descarta el resultado
+  /// calculado, devolviendo el panel a su estado inicial.
+  void _resetAll() {
+    setState(() {
+      _lambdaController.clear();
+      _xiController.clear();
+      _xjController.clear();
+      _result = null;
+      _errorMessage = null;
+    });
+    _formKey.currentState?.reset();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,9 +93,29 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionTitle(
-                      text: 'Parámetros de entrada',
-                      icon: Icons.tune_rounded,
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: SectionTitle(
+                            text: 'Parámetros de entrada',
+                            icon: Icons.tune_rounded,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _resetAll,
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: const Text('Limpiar'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textSecondary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     ParameterTextField(
@@ -166,35 +195,43 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
                 distributionType: DistributionType.exponential,
                 probabilityType: _probabilityType,
               ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SectionTitle(
-                        text: 'Densidad f(x)',
-                        icon: Icons.show_chart_rounded,
-                      ),
-                      const SizedBox(height: 14),
-                      SizedBox(
-                        height: 220,
-                        width: double.infinity,
-                        child: CustomPaint(
-                          painter: ExponentialChartPainter(
-                            points: _result!.points,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: _Legend(),
-                      ),
-                    ],
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton.icon(
+                  onPressed: () => ExplanationBottomSheet.show(
+                    context,
+                    result: _result!,
+                    distributionType: DistributionType.exponential,
+                    probabilityType: _probabilityType,
+                    upperX: _probabilityType.requiresTwoInputs
+                        ? double.tryParse(_xjController.text)
+                        : null,
+                  ),
+                  icon: const Icon(Icons.lightbulb_outline_rounded, size: 16),
+                  label: const Text('Interpretación'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 8),
+              StatSummaryGrid(result: _result!),
+              const SizedBox(height: 16),
+              DistributionGraphContainer(
+                result: _result!,
+                pointLabel: 'Densidad (PDF)',
+                cumulativeLabel: 'Acumulativa (CDF)',
               ),
             ],
           ],
@@ -202,28 +239,4 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
       ),
     );
   }
-}
-
-class _Legend extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _dot(AppColors.highlight),
-        const SizedBox(width: 6),
-        Text('Área evaluada', style: AppTextStyles.subtitle),
-        const SizedBox(width: 16),
-        Container(width: 14, height: 2, color: AppColors.primaryDark),
-        const SizedBox(width: 6),
-        Text('f(x)', style: AppTextStyles.subtitle),
-      ],
-    );
-  }
-
-  Widget _dot(Color color) => Container(
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      );
 }
