@@ -368,7 +368,13 @@ class _ExplanationSection extends StatelessWidget {
           children: [
             Icon(icon, size: 17, color: AppColors.primary),
             const SizedBox(width: 6),
-            Text(title, style: AppTextStyles.label),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTextStyles.label,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),

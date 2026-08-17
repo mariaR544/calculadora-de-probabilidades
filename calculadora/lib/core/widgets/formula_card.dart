@@ -210,17 +210,19 @@ class _StatFormulaGrid extends StatelessWidget {
         for (int i = 0; i < items.length; i += 2)
           Padding(
             padding: EdgeInsets.only(bottom: i + 2 < items.length ? 10 : 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: _StatFormulaCell(item: items[i])),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: i + 1 < items.length
-                      ? _StatFormulaCell(item: items[i + 1])
-                      : const SizedBox.shrink(),
-                ),
-              ],
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _StatFormulaCell(item: items[i])),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: i + 1 < items.length
+                        ? _StatFormulaCell(item: items[i + 1])
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
           ),
       ],
