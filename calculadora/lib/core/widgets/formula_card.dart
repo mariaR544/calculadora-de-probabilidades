@@ -94,9 +94,9 @@ class _FormulaData {
     if (type == DistributionType.poisson) {
       return const _FormulaData(
         densityBadge: 'PMF',
-        densityFormula: 'P(X = x)  =  (λˣ · e⁻λ) / x!',
+        densityFormula: 'P(X = x)  =  (λ^x · e^{-λ}) / x!',
         densityDomain: 'x ∈ {0, 1, 2, ...}',
-        cdfFormula: 'P(X ≤ x)  =  Σ (λⁱ · e⁻λ) / i!    (i = 0 → x)',
+        cdfFormula: 'P(X ≤ x)  =  Σ (λ^i · e^{-λ}) / i!    (i = 0 → x)',
         cdfDomain: 'x ∈ {0, 1, 2, ...}',
         statFormulas: [
           _StatFormula('E[X] · Media', 'λ'),
@@ -112,13 +112,13 @@ class _FormulaData {
 
     return const _FormulaData(
       densityBadge: 'PDF',
-      densityFormula: 'f(x)  =  λ · e⁻λˣ     (x > 0)',
+      densityFormula: 'f(x)  =  λ · e^{-λx}     (x > 0)',
       densityDomain: 'x > 0',
-      cdfFormula: 'F(x)  =  1 − e⁻λˣ     (x ≥ 0)',
+      cdfFormula: 'F(x)  =  1 − e^{-λx}     (x ≥ 0)',
       cdfDomain: 'x ≥ 0',
       statFormulas: [
         _StatFormula('E[X] · Media', '1 / λ'),
-        _StatFormula('Var(X) · Varianza', '1 / λ²'),
+        _StatFormula('Var(X) · Varianza', '1 / λ^2'),
         _StatFormula('σ · Desv. estándar', '1 / λ'),
         _StatFormula('Asimetría', '2'),
         _StatFormula('Curtosis', '9'),
@@ -133,9 +133,83 @@ class _FormulaData {
 // Widgets de presentación
 // ---------------------------------------------------------------------
 
+/// Widget que procesa notación matemática con superíndices (ej. ^x, ^{-λ}, ^2)
+/// y los renderiza con desplazamiento vertical auténtico como exponentes reales.
+class _MathRichText extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+
+  const _MathRichText(
+    this.text, {
+    required this.style,
+    this.maxLines,
+    this.overflow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = _parseMathString(text, style);
+    return Text.rich(
+      TextSpan(children: spans),
+      maxLines: maxLines,
+      overflow: overflow,
+    );
+  }
+
+  static List<InlineSpan> _parseMathString(String text, TextStyle baseStyle) {
+    final spans = <InlineSpan>[];
+    final expRegex =
+        RegExp(r'(\^|\_)(?:\{([^}]+)\}|\(([^\)]+)\)|([a-zA-Z0-9λ\-\+]))');
+
+    int lastEnd = 0;
+    for (final match in expRegex.allMatches(text)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: baseStyle,
+        ));
+      }
+
+      final isSuperscript = match.group(1) == '^';
+      final content = match.group(2) ?? match.group(3) ?? match.group(4) ?? '';
+      final fontSize = baseStyle.fontSize ?? 15.0;
+
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Transform.translate(
+            offset:
+                Offset(0, isSuperscript ? -fontSize * 0.38 : fontSize * 0.28),
+            child: Text(
+              content,
+              style: baseStyle.copyWith(
+                fontSize: fontSize * 0.70,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: baseStyle,
+      ));
+    }
+
+    return spans;
+  }
+}
+
 /// Tarjeta de fórmula principal (PMF/PDF o CDF) con un badge de color
-/// que identifica el tipo de función, la fórmula en tipografía
-/// monoespaciada y el dominio de la variable a la derecha.
+/// que identifica el tipo de función, la fórmula con tipografía clara
+/// y el dominio de la variable a la derecha.
 class _FormulaBadgeTile extends StatelessWidget {
   final String badge;
   final String formula;
@@ -185,7 +259,7 @@ class _FormulaBadgeTile extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(
+            child: _MathRichText(
               formula,
               style: AppTextStyles.formula.copyWith(fontSize: 16),
             ),
@@ -253,11 +327,15 @@ class _StatFormulaCell extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 5),
-          Text(
-            item.formula,
-            style: AppTextStyles.formula,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: _MathRichText(
+              item.formula,
+              style: AppTextStyles.formula,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

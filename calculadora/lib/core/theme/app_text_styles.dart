@@ -36,7 +36,13 @@ class AppTextStyles {
     fontSize: 15,
     fontWeight: FontWeight.w600,
     color: AppColors.primaryDark,
-    fontFamily: 'monospace',
+    fontFamilyFallback: <String>[
+      'Roboto',
+      'Segoe UI',
+      'Noto Sans',
+      'Arial',
+      'sans-serif',
+    ],
   );
 
   static const TextStyle label = TextStyle(
