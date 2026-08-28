@@ -111,6 +111,11 @@ class _MultiserverGraphContainerState extends State<MultiserverGraphContainer> {
                 );
               }),
             ),
+            const SizedBox(height: 10),
+            _MultiserverColorLegend(
+              isCumulativePage: _pageIndex == 1,
+              servers: widget.result.servers,
+            ),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.center,
@@ -122,6 +127,62 @@ class _MultiserverGraphContainerState extends State<MultiserverGraphContainer> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MultiserverColorLegend extends StatelessWidget {
+  final bool isCumulativePage;
+  final int servers;
+
+  const _MultiserverColorLegend({
+    required this.isCumulativePage,
+    required this.servers,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final generalLabel = isCumulativePage
+        ? 'Probabilidad acumulada P(N ≤ n)'
+        : 'Probabilidad de estado Pₙ';
+
+    return Wrap(
+      spacing: 16,
+      runSpacing: 6,
+      alignment: WrapAlignment.center,
+      children: [
+        _LegendItem(
+          color: AppColors.primaryLight,
+          label: generalLabel,
+        ),
+        _LegendItem(
+          color: AppColors.primary,
+          label: 'Umbral de servidores (c = $servers)',
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: AppTextStyles.subtitle.copyWith(fontSize: 11)),
+      ],
     );
   }
 }

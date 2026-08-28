@@ -60,14 +60,14 @@ class _MultiserverFormulaData {
     if (type.isFinite) {
       return const _MultiserverFormulaData(
         formulas: [
-          _Formula('r, ρ', 'r = λ / μ  ·  ρ = λ / (c · μ)'),
-          _Formula('P₀', 'P₀ = [ ∑_{n=0}^{c-1} (rⁿ/n!) + (rᶜ/c!) · ((1 − ρ^(N−c+1))/(1 − ρ)) ]⁻¹'),
-          _Formula('Pₙ (n≤c)', 'Pₙ = (rⁿ / n!) · P₀ ,   0 ≤ n ≤ c'),
-          _Formula('Pₙ (n>c)', 'Pₙ = (rⁿ / (c! · cⁿ⁻ᶜ)) · P₀ ,   c < n ≤ N'),
-          _Formula('P_N', 'P_N = (rᴺ / (c! · c^(N−c))) · P₀  (Bloqueo)'),
+          _Formula('r, ρ', 'r = λ / μ    ·    ρ = λ / (c · μ)'),
+          _Formula('P₀', 'P₀ = [ ∑ₙ₌₀ᶜ⁻¹ (rⁿ / n!) + (rᶜ / c!) · ((1 − ρᴺ⁻ᶜ⁺¹) / (1 − ρ)) ]⁻¹    [ρ ≠ 1]'),
+          _Formula('Pₙ (n≤c)', 'Pₙ = (rⁿ / n!) · P₀    (0 ≤ n ≤ c)'),
+          _Formula('Pₙ (n>c)', 'Pₙ = (rⁿ / (c! · cⁿ⁻ᶜ)) · P₀ = (rᶜ / c!) · ρⁿ⁻ᶜ · P₀    (c < n ≤ N)'),
+          _Formula('P_N', 'P_N = (rᴺ / (c! · cᴺ⁻ᶜ)) · P₀    (Bloqueo / Sistema lleno)'),
           _Formula('λ_eff', 'λ_eff = λ · (1 − P_N)'),
           _Formula('Pérdida', 'Tasa de pérdida = λ − λ_eff = λ · P_N'),
-          _Formula('Lᵩ', 'Lᵩ = ∑_{n=c}^{N} (n − c) · Pₙ'),
+          _Formula('Lᵩ', 'Lᵩ = ∑ₙ₌ᶜᴺ (n − c) · Pₙ'),
           _Formula('Wᵩ', 'Wᵩ = Lᵩ / λ_eff'),
           _Formula('Wₛ', 'Wₛ = Wᵩ + (1 / μ)'),
           _Formula('Lₛ', 'Lₛ = λ_eff · Wₛ = Lᵩ + (λ_eff / μ)'),
@@ -82,16 +82,16 @@ class _MultiserverFormulaData {
 
     return const _MultiserverFormulaData(
       formulas: [
-        _Formula('r, ρ', 'r = λ / μ  ·  ρ = λ / (c · μ)'),
-        _Formula('P₀', 'P₀ = [ ∑_{n=0}^{c-1} (rⁿ/n!) + (rᶜ/c!) · (1 / (1 − ρ)) ]⁻¹'),
-        _Formula('Pₙ (n≤c)', 'Pₙ = (rⁿ / n!) · P₀ ,   0 ≤ n ≤ c'),
-        _Formula('Pₙ (n>c)', 'Pₙ = (rⁿ / (c! · cⁿ⁻ᶜ)) · P₀ ,   n > c'),
-        _Formula('Lᵩ', 'Lᵩ = [ P₀ · rᶜ · ρ ] / [ c! · (1 − ρ)² ]'),
+        _Formula('r, ρ', 'r = λ / μ    ·    ρ = λ / (c · μ)'),
+        _Formula('P₀', 'P₀ = [ ∑ₙ₌₀ᶜ⁻¹ (rⁿ / n!) + (rᶜ / c!) · (1 / (1 − ρ)) ]⁻¹'),
+        _Formula('Pₙ (n≤c)', 'Pₙ = (rⁿ / n!) · P₀    (0 ≤ n ≤ c)'),
+        _Formula('Pₙ (n>c)', 'Pₙ = (rⁿ / (c! · cⁿ⁻ᶜ)) · P₀    (n > c)'),
+        _Formula('Lᵩ', 'Lᵩ = (P₀ · rᶜ · ρ) / [ c! · (1 − ρ)² ]'),
         _Formula('Wᵩ', 'Wᵩ = Lᵩ / λ'),
         _Formula('Wₛ', 'Wₛ = Wᵩ + (1 / μ)'),
         _Formula('Lₛ', 'Lₛ = λ · Wₛ = Lᵩ + (λ / μ)'),
-        _Formula('Activos', 'Servidores activos = λ / μ'),
-        _Formula('c̄', 'c̄ (inactivos) = c − (λ / μ)'),
+        _Formula('Activos', 'Servidores activos = λ / μ = r'),
+        _Formula('c̄', 'c̄ (inactivos) = c − (λ / μ) = c − r'),
       ],
       restrictions:
           'λ > 0,  μ > 0,  c ∈ ℤ≥1,  y obligatoriamente ρ = λ/(c·μ) < 1 (condición de estabilidad). '

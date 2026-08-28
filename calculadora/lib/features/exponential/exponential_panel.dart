@@ -13,6 +13,7 @@ import '../../models/probability_type.dart';
 import '../../utils/validators.dart';
 import 'exponential_calculator.dart';
 import '../../core/widgets/explanation_bottom_sheet.dart';
+import '../calculator/probability_pdf_report.dart';
 
 /// Panel del módulo Exponencial.
 class ExponentialPanel extends StatefulWidget {
@@ -31,6 +32,7 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
   ProbabilityType _probabilityType = ProbabilityType.menorOIgual;
   CalculationResult? _result;
   String? _errorMessage;
+  bool _isExporting = false;
 
   @override
   void dispose() {
@@ -38,6 +40,33 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
     _xiController.dispose();
     _xjController.dispose();
     super.dispose();
+  }
+
+  Future<void> _exportPdf(Future<void> Function({
+    required CalculationResult result,
+    required DistributionType distributionType,
+    required ProbabilityType probabilityType,
+    double? upperX,
+  }) action) async {
+    if (_result == null || _isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      await action(
+        result: _result!,
+        distributionType: DistributionType.exponential,
+        probabilityType: _probabilityType,
+        upperX: _probabilityType.requiresTwoInputs
+            ? double.tryParse(_xjController.text)
+            : null,
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() => _errorMessage =
+            'No se pudo generar el reporte PDF. Intenta nuevamente.');
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
   }
 
   void _calculate() {
@@ -233,10 +262,56 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
                 pointLabel: 'Densidad (PDF)',
                 cumulativeLabel: 'Acumulativa (CDF)',
               ),
+              const SizedBox(height: 16),
+              _buildExportButtons(),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildExportButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _isExporting
+                ? null
+                : () => _exportPdf(ProbabilityPdfReport.print),
+            icon: const Icon(Icons.print_rounded, size: 18),
+            label: const Text('Imprimir'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.border),
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _isExporting
+                ? null
+                : () => _exportPdf(ProbabilityPdfReport.share),
+            icon: _isExporting
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                          AlwaysStoppedAnimation(AppColors.textOnPrimary),
+                    ),
+                  )
+                : const Icon(Icons.picture_as_pdf_rounded, size: 18),
+            label: Text(_isExporting ? 'Generando...' : 'Exportar PDF'),
+          ),
+        ),
+      ],
     );
   }
 }
