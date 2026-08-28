@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/widgets/distribution_drawer.dart';
+import '../../core/widgets/app_drawer.dart';
 
-/// Pantalla de inicio de la calculadora.
+/// Pantalla de inicio de Quantis.
 class CalculatorScreen extends StatelessWidget {
   const CalculatorScreen({super.key});
 
@@ -11,10 +11,10 @@ class CalculatorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calculadora Estadística'),
+        title: const Text('Quantis'),
         elevation: 0,
       ),
-      drawer: const DistributionDrawer(),
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -43,7 +43,7 @@ class CalculatorScreen extends StatelessWidget {
 
                 // Saludo de bienvenida
                 Text(
-                  '¡Bienvenido!',
+                  '¡Bienvenido a Quantis!',
                   style: AppTextStyles.title.copyWith(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -54,7 +54,7 @@ class CalculatorScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Calculadora de Distribución de Probabilidades',
+                  'Probabilidades y Líneas de Espera',
                   style: AppTextStyles.subtitle.copyWith(
                     fontSize: 16,
                     height: 1.3,
@@ -84,7 +84,7 @@ class CalculatorScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Para comenzar a realizar tus cálculos seleccione una distribución.',
+                        'Para comenzar, seleccione un módulo y un modelo desde el menú.',
                         style: AppTextStyles.subtitle.copyWith(fontSize: 14),
                         textAlign: TextAlign.center,
                       ),
@@ -107,7 +107,7 @@ class CalculatorScreen extends StatelessWidget {
                               elevation: 2,
                             ),
                             child: const Text(
-                              'Seleccione una distribución',
+                              'Abrir menú de módulos',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

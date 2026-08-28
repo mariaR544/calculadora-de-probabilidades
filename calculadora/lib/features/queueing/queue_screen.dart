@@ -2,26 +2,18 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_drawer.dart';
-import '../../core/widgets/formula_card.dart';
-import '../../models/distribution_type.dart';
-import '../exponential/exponential_panel.dart';
-import '../poisson/poisson_panel.dart';
+import '../../models/queue_model_type.dart';
+import 'queue_formula_card.dart';
+import 'queue_panel.dart';
 
-/// Pantalla dedicada exclusivamente a una distribución de probabilidad.
-///
-/// Estructura:
-///  1. Encabezado simple: nombre de la distribución + botón "Fórmulas".
-///  2. Cuerpo: panel de parámetros de entrada (lo primero que ve el
-///     usuario), seguido del selector de probabilidad, botón
-///     "Calcular" y, tras calcular, resultados y gráfica.
-///
-/// Las fórmulas, definiciones y restricciones NO se muestran en esta
-/// pantalla junto a los parámetros: solo aparecen al pulsar el botón
-/// "Fórmulas", dentro de un panel deslizable (bottom sheet).
-class DistributionScreen extends StatelessWidget {
-  final DistributionType type;
+/// Pantalla dedicada exclusivamente a un modelo de colas (M/M/1 sin
+/// límite o M/M/1 con límite N). Mismo patrón que `DistributionScreen`
+/// del Módulo 1: encabezado simple + botón "Fórmulas" + panel de
+/// parámetros como lo primero que ve el usuario.
+class QueueScreen extends StatelessWidget {
+  final QueueModelType type;
 
-  const DistributionScreen({super.key, required this.type});
+  const QueueScreen({super.key, required this.type});
 
   void _showFormulas(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.85;
@@ -53,7 +45,7 @@ class DistributionScreen extends StatelessWidget {
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                  child: FormulaCard(type: type),
+                  child: QueueFormulaCard(type: type),
                 ),
               ),
             ],
@@ -69,11 +61,10 @@ class DistributionScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Quantis'),
       ),
-      drawer: AppDrawer(selectedDistribution: type),
+      drawer: AppDrawer(selectedQueueType: type),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Encabezado simple: nombre de la distribución + acceso a fórmulas
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
             child: Row(
@@ -96,8 +87,8 @@ class DistributionScreen extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.border),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -107,12 +98,7 @@ class DistributionScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          // Cuerpo: parámetros de entrada primero, resultados y gráfica después
-          Expanded(
-            child: type == DistributionType.poisson
-                ? const PoissonPanel()
-                : const ExponentialPanel(),
-          ),
+          Expanded(child: QueuePanel(type: type)),
         ],
       ),
     );
