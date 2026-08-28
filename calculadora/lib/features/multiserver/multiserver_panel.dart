@@ -3,34 +3,35 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/parameter_text_field.dart';
 import '../../core/widgets/section_title.dart';
-import '../../models/queue_model_type.dart';
-import '../../models/queue_result.dart';
-import 'queue_calculator.dart';
-import 'queue_distribution_table.dart';
-import 'queue_explanation_bottom_sheet.dart';
-import 'queue_graph_container.dart';
-import 'queue_pdf_report.dart';
-import 'queue_results_panel.dart';
+import '../../models/multiserver_queue_model_type.dart';
+import '../../models/multiserver_queue_result.dart';
+import 'multiserver_calculator.dart';
+import 'multiserver_distribution_table.dart';
+import 'multiserver_explanation_bottom_sheet.dart';
+import 'multiserver_graph_container.dart';
+import 'multiserver_pdf_report.dart';
+import 'multiserver_results_panel.dart';
 
-/// Panel del módulo de colas: formulario de parámetros (λ, μ y, si
-/// aplica, N), botón "Calcular" y, tras calcular, métricas, tabla de
-/// probabilidades, gráfica deslizable y exportación a PDF.
-class QueuePanel extends StatefulWidget {
-  final QueueModelType type;
+/// Panel del módulo multicanal (M/M/c): formulario de parámetros (λ, μ, c y,
+/// si aplica, N), botón "Calcular" y presentación de resultados operativos,
+/// métricas de servidores, gráficos, tablas de estado y exportación a PDF.
+class MultiserverPanel extends StatefulWidget {
+  final MultiserverQueueModelType type;
 
-  const QueuePanel({super.key, required this.type});
+  const MultiserverPanel({super.key, required this.type});
 
   @override
-  State<QueuePanel> createState() => _QueuePanelState();
+  State<MultiserverPanel> createState() => _MultiserverPanelState();
 }
 
-class _QueuePanelState extends State<QueuePanel> {
+class _MultiserverPanelState extends State<MultiserverPanel> {
   final _formKey = GlobalKey<FormState>();
-  final _lambdaController = TextEditingController(text: '4');
-  final _muController = TextEditingController(text: '6');
-  final _capacityController = TextEditingController(text: '5');
+  final _lambdaController = TextEditingController(text: '8');
+  final _muController = TextEditingController(text: '5');
+  final _serversController = TextEditingController(text: '2');
+  final _capacityController = TextEditingController(text: '6');
 
-  QueueResult? _result;
+  MultiserverQueueResult? _result;
   String? _errorMessage;
   bool _isExporting = false;
 
@@ -38,6 +39,7 @@ class _QueuePanelState extends State<QueuePanel> {
   void dispose() {
     _lambdaController.dispose();
     _muController.dispose();
+    _serversController.dispose();
     _capacityController.dispose();
     super.dispose();
   }
@@ -47,24 +49,35 @@ class _QueuePanelState extends State<QueuePanel> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      final result = QueueCalculator.calculate(
-        lambda: double.parse(_lambdaController.text.replaceAll(',', '.')),
-        mu: double.parse(_muController.text.replaceAll(',', '.')),
+      final lambda = double.parse(_lambdaController.text.replaceAll(',', '.'));
+      final mu = double.parse(_muController.text.replaceAll(',', '.'));
+      final servers = int.parse(_serversController.text);
+      final capacity = widget.type.isFinite
+          ? int.parse(_capacityController.text)
+          : null;
+
+      final result = MultiserverCalculator.calculate(
+        lambda: lambda,
+        mu: mu,
+        servers: servers,
         type: widget.type,
-        capacity: widget.type.isFinite
-            ? int.parse(_capacityController.text)
-            : null,
+        capacity: capacity,
       );
       setState(() => _result = result);
-    } on QueueValidationException catch (e) {
+    } on MultiserverValidationException catch (e) {
       setState(() {
         _errorMessage = e.message;
+        _result = null;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Ocurrió un error inesperado al procesar los datos.';
         _result = null;
       });
     }
   }
 
-  Future<void> _exportPdf(Future<void> Function(QueueResult) action) async {
+  Future<void> _exportPdf(Future<void> Function(MultiserverQueueResult) action) async {
     if (_result == null || _isExporting) return;
     setState(() => _isExporting = true);
     try {
@@ -72,7 +85,7 @@ class _QueuePanelState extends State<QueuePanel> {
     } catch (_) {
       if (mounted) {
         setState(() => _errorMessage =
-            'No se pudo generar el PDF. Intenta nuevamente.');
+            'No se pudo generar el reporte PDF. Intenta nuevamente.');
       }
     } finally {
       if (mounted) setState(() => _isExporting = false);
@@ -95,17 +108,16 @@ class _QueuePanelState extends State<QueuePanel> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SectionTitle(
-                      text: 'Parámetros de entrada',
+                      text: 'Parámetros de entrada multicanal',
                       icon: Icons.tune_rounded,
                     ),
                     const SizedBox(height: 14),
                     ParameterTextField(
                       controller: _lambdaController,
-                      label: 'λ (TASA DE LLEGADA)',
+                      label: 'λ (TASA DE LLEGADA GLOBAL)',
                       description:
                           'Número promedio de clientes que llegan al '
-                          'sistema por unidad de tiempo. Debe ser mayor '
-                          'que 0.',
+                          'sistema por unidad de tiempo. Debe ser mayor que 0.',
                       validator: (v) {
                         final parsed =
                             double.tryParse((v ?? '').replaceAll(',', '.'));
@@ -117,16 +129,29 @@ class _QueuePanelState extends State<QueuePanel> {
                     const SizedBox(height: 14),
                     ParameterTextField(
                       controller: _muController,
-                      label: 'μ (TASA DE SERVICIO)',
+                      label: 'μ (TASA DE SERVICIO POR SERVIDOR)',
                       description:
-                          'Número promedio de clientes que el servidor '
-                          'puede atender por unidad de tiempo. Debe ser '
-                          'mayor que 0.',
+                          'Capacidad media de atención de cada servidor individual '
+                          'por unidad de tiempo. Debe ser mayor que 0.',
                       validator: (v) {
                         final parsed =
                             double.tryParse((v ?? '').replaceAll(',', '.'));
                         if (parsed == null) return 'Ingresa un número válido';
                         if (parsed <= 0) return 'μ debe ser mayor que 0';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    ParameterTextField(
+                      controller: _serversController,
+                      label: 'c (NÚMERO DE SERVIDORES EN PARALELO)',
+                      description:
+                          'Cantidad de canales o servidores idénticos atendiendo simultáneamente. Entero ≥ 1.',
+                      allowDecimal: false,
+                      validator: (v) {
+                        final parsed = int.tryParse(v ?? '');
+                        if (parsed == null) return 'Ingresa un número entero';
+                        if (parsed < 1) return 'c debe ser ≥ 1';
                         return null;
                       },
                     ),
@@ -136,14 +161,14 @@ class _QueuePanelState extends State<QueuePanel> {
                         controller: _capacityController,
                         label: 'N (CAPACIDAD MÁXIMA DEL SISTEMA)',
                         description:
-                            'Número máximo de clientes que el sistema '
-                            'puede contener (incluyendo al que está '
-                            'siendo atendido). Entero ≥ 1.',
+                            'Número máximo total de clientes permitidos en el sistema '
+                            '(c en atención + N − c en cola). Entero ≥ c.',
                         allowDecimal: false,
                         validator: (v) {
                           final parsed = int.tryParse(v ?? '');
                           if (parsed == null) return 'Ingresa un entero';
-                          if (parsed < 1) return 'N debe ser ≥ 1';
+                          final c = int.tryParse(_serversController.text) ?? 1;
+                          if (parsed < c) return 'N debe ser mayor o igual a c ($c)';
                           return null;
                         },
                       ),
@@ -171,12 +196,12 @@ class _QueuePanelState extends State<QueuePanel> {
             ),
             if (_result != null) ...[
               const SizedBox(height: 16),
-              QueueResultsPanel(result: _result!),
+              MultiserverResultsPanel(result: _result!),
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: OutlinedButton.icon(
-                  onPressed: () => QueueExplanationBottomSheet.show(
+                  onPressed: () => MultiserverExplanationBottomSheet.show(
                     context,
                     result: _result!,
                   ),
@@ -198,9 +223,9 @@ class _QueuePanelState extends State<QueuePanel> {
                 ),
               ),
               const SizedBox(height: 16),
-              QueueGraphContainer(result: _result!),
+              MultiserverGraphContainer(result: _result!),
               const SizedBox(height: 16),
-              QueueDistributionTable(result: _result!),
+              MultiserverDistributionTable(result: _result!),
               const SizedBox(height: 16),
               _buildExportButtons(),
             ],
@@ -217,7 +242,7 @@ class _QueuePanelState extends State<QueuePanel> {
           child: OutlinedButton.icon(
             onPressed: _isExporting
                 ? null
-                : () => _exportPdf(QueuePdfReport.print),
+                : () => _exportPdf(MultiserverPdfReport.print),
             icon: const Icon(Icons.print_rounded, size: 18),
             label: const Text('Imprimir'),
             style: OutlinedButton.styleFrom(
@@ -235,7 +260,7 @@ class _QueuePanelState extends State<QueuePanel> {
           child: ElevatedButton.icon(
             onPressed: _isExporting
                 ? null
-                : () => _exportPdf(QueuePdfReport.share),
+                : () => _exportPdf(MultiserverPdfReport.share),
             icon: _isExporting
                 ? const SizedBox(
                     width: 16,
