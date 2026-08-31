@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/calculator/distribution_screen.dart';
+import '../../features/database_sim/database_sim_screen.dart';
 import '../../features/multiserver/multiserver_screen.dart';
 import '../../features/queueing/queue_screen.dart';
 import '../../models/distribution_type.dart';
@@ -8,15 +9,16 @@ import '../../models/queue_model_type.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// Menú lateral (Drawer) único de la aplicación, con tres secciones:
+/// Menú lateral (Drawer) único de la aplicación, con una sección por
+/// módulo:
 ///  - Módulo 1 · Probabilidades (Poisson, Exponencial)
-///  - Módulo 2 · Líneas de espera de un servidor (M/M/1)
-///  - Módulo 3 · Líneas de espera de múltiples servidores (M/M/c)
+///  - Módulo 2 · Líneas de espera M/M/1 (sin límite, con límite N)
+///  - Módulo 3 · Colas multiservidor M/M/c (sin límite, con límite N)
+///  - Módulo 4 · Simulación de Base de Datos
 ///
-/// Reemplaza a `DistributionDrawer`. Al seleccionar una opción, navega
-/// a su pantalla dedicada reemplazando la ruta actual (mismo criterio
-/// que el Módulo 1: siempre una única pantalla de cálculo activa, con
-/// el ícono de menú disponible en el AppBar).
+/// Al seleccionar una opción, navega a su pantalla dedicada
+/// reemplazando la ruta actual (siempre una única pantalla de cálculo
+/// activa, con el ícono de menú disponible en el AppBar).
 class AppDrawer extends StatelessWidget {
   /// Distribución activa, si la pantalla actual pertenece al Módulo 1.
   final DistributionType? selectedDistribution;
@@ -24,14 +26,19 @@ class AppDrawer extends StatelessWidget {
   /// Modelo de colas activo, si la pantalla actual pertenece al Módulo 2.
   final QueueModelType? selectedQueueType;
 
-  /// Modelo de colas multicanal activo, si pertenece al Módulo 3.
+  /// Modelo multiservidor activo, si la pantalla pertenece al Módulo 3.
   final MultiserverQueueModelType? selectedMultiserverType;
+
+  /// true si la pantalla actual es la de Simulación de Base de Datos
+  /// (Módulo 4).
+  final bool selectedDatabaseSim;
 
   const AppDrawer({
     super.key,
     this.selectedDistribution,
     this.selectedQueueType,
     this.selectedMultiserverType,
+    this.selectedDatabaseSim = false,
   });
 
   @override
@@ -65,13 +72,14 @@ class AppDrawer extends StatelessWidget {
                   }
                 },
               ),
+
             const Padding(
               padding: EdgeInsets.fromLTRB(0, 4, 0, 0),
               child: Divider(height: 1),
             ),
             const Padding(
               padding: EdgeInsets.fromLTRB(20, 14, 20, 10),
-              child: Text('MÓDULO 2 · LÍNEAS DE ESPERA (M/M/1)', style: AppTextStyles.label),
+              child: Text('MÓDULO 2 · LÍNEAS DE ESPERA', style: AppTextStyles.label),
             ),
             for (final type in QueueModelType.values)
               _DrawerTile(
@@ -92,19 +100,20 @@ class AppDrawer extends StatelessWidget {
                   }
                 },
               ),
+
             const Padding(
               padding: EdgeInsets.fromLTRB(0, 4, 0, 0),
               child: Divider(height: 1),
             ),
             const Padding(
               padding: EdgeInsets.fromLTRB(20, 14, 20, 10),
-              child: Text('MÓDULO 3 · MÚLTIPLES SERVIDORES (M/M/c)', style: AppTextStyles.label),
+              child: Text('MÓDULO 3 · MULTISERVIDOR M/M/c', style: AppTextStyles.label),
             ),
             for (final type in MultiserverQueueModelType.values)
               _DrawerTile(
                 icon: type.isFinite
-                    ? Icons.filter_center_focus_rounded
-                    : Icons.hub_rounded,
+                    ? Icons.block_rounded
+                    : Icons.people_alt_rounded,
                 title: type.label,
                 subtitle: type.kendallNotation,
                 selected: type == selectedMultiserverType,
@@ -119,6 +128,32 @@ class AppDrawer extends StatelessWidget {
                   }
                 },
               ),
+
+            const Padding(
+              padding: EdgeInsets.fromLTRB(0, 4, 0, 0),
+              child: Divider(height: 1),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 14, 20, 10),
+              child: Text(
+                'MÓDULO 4 · SIMULACIÓN DE MONTECARLO',
+                style: AppTextStyles.label,
+              ),
+            ),
+            _DrawerTile(
+              icon: Icons.storage_rounded,
+              title: 'Simulación Poisson / Exponencial',
+              subtitle: 'Generación de variables por lote',
+              selected: selectedDatabaseSim,
+              onTap: () {
+                Navigator.of(context).pop();
+                if (!selectedDatabaseSim) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const DatabaseSimScreen()),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
