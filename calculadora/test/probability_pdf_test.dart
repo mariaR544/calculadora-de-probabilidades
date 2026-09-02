@@ -6,6 +6,7 @@ import 'package:calculadora/features/exponential/exponential_calculator.dart';
 import 'package:calculadora/features/calculator/probability_pdf_report.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('ProbabilityPdfReport (Módulo 1)', () {
     test('Genera reporte PDF para Poisson', () async {
       final result = PoissonCalculator.calculate(

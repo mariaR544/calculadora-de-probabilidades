@@ -223,6 +223,9 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
                 result: _result!,
                 distributionType: DistributionType.exponential,
                 probabilityType: _probabilityType,
+                upperX: _probabilityType.requiresTwoInputs
+                    ? double.tryParse(_xjController.text)
+                    : null,
               ),
               const SizedBox(height: 8),
               Align(

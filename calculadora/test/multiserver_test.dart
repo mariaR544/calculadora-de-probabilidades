@@ -8,6 +8,7 @@ import 'package:calculadora/features/multiserver/multiserver_pdf_report.dart';
 import 'package:calculadora/features/multiserver/multiserver_panel.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('MultiserverCalculator (M/M/c y M/M/c/N)', () {
     test('M/M/c sin límite (capacidad infinita) calcula métricas exactas', () {
       // λ = 8, μ = 5, c = 2

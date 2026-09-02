@@ -226,6 +226,7 @@ class _PoissonPanelState extends State<PoissonPanel> {
                 result: _result!,
                 distributionType: DistributionType.poisson,
                 probabilityType: _probabilityType,
+                upperX: _isRange ? double.tryParse(_x2Controller.text) : null,
               ),
               const SizedBox(height: 8),
               Align(

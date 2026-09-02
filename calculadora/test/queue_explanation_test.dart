@@ -4,7 +4,10 @@ import 'package:calculadora/models/queue_model_type.dart';
 import 'package:calculadora/features/queueing/queue_calculator.dart';
 import 'package:calculadora/features/queueing/queue_explanation_bottom_sheet.dart';
 
+import 'package:calculadora/features/queueing/queue_pdf_report.dart';
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('QueueExplanationTextGenerator', () {
     test('Genera interpretación para M/M/1 sin límite (infinito)', () {
       final result = QueueCalculator.calculate(
@@ -67,5 +70,30 @@ void main() {
     expect(find.text('SIGNIFICADO DE LAS MÉTRICAS OPERATIVAS'), findsOneWidget);
     expect(find.text('DISTRIBUCIÓN DE PROBABILIDAD (Pn)'), findsOneWidget);
     expect(find.byIcon(Icons.lightbulb_outline_rounded), findsOneWidget);
+  });
+
+  group('QueuePdfReport', () {
+    test('Genera bytes PDF no vacíos para reporte de colas M/M/1', () async {
+      final result = QueueCalculator.calculate(
+        lambda: 4,
+        mu: 6,
+        type: QueueModelType.infinite,
+      );
+
+      final pdfBytes = await QueuePdfReport.generate(result);
+      expect(pdfBytes.isNotEmpty, isTrue);
+    });
+
+    test('Genera bytes PDF no vacíos para reporte de colas finito M/M/1/N', () async {
+      final result = QueueCalculator.calculate(
+        lambda: 4,
+        mu: 6,
+        type: QueueModelType.finite,
+        capacity: 5,
+      );
+
+      final pdfBytes = await QueuePdfReport.generate(result);
+      expect(pdfBytes.isNotEmpty, isTrue);
+    });
   });
 }
