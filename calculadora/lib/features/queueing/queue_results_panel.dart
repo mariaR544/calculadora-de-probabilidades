@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/stat_procedure_dialog.dart';
 import '../../models/queue_result.dart';
+import 'queue_stat_procedures.dart';
 
 /// Formatea un número decimal eliminando ceros innecesarios al final
 String _formatNum(double v) {
@@ -151,6 +153,16 @@ class QueueResultsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Genera procedimientos y construye mapa label → procedimiento
+    final procs = QueueStatProcedures.build(result);
+    final procMap = {for (final p in procs) p.statLabel: p};
+
+    void onTile(String label) {
+      final proc = procMap[label];
+      if (proc == null) return;
+      StatProcedureDialog.show(context, procedure: proc);
+    }
+
     final double effLambda = result.lambdaEff ?? result.lambda;
     final String lambdaStr = _formatNum(result.lambda);
     final String muStr = _formatNum(result.mu);
@@ -200,6 +212,7 @@ class QueueResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'ρ · Utilización',
                         value: result.rho.toStringAsFixed(4),
+                        onTap: () => onTile('ρ · Utilización'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -207,6 +220,7 @@ class QueueResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'P_0 · Sistema vacío',
                         value: result.p0.toStringAsFixed(4),
+                        onTap: () => onTile('P_0 · Sistema vacío'),
                       ),
                     ),
                   ],
@@ -218,6 +232,7 @@ class QueueResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'L_s · Clientes en sistema',
                         value: result.ls.toStringAsFixed(4),
+                        onTap: () => onTile('L_s · Clientes en sistema'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -225,6 +240,7 @@ class QueueResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'L_q · Clientes en cola',
                         value: result.lq.toStringAsFixed(4),
+                        onTap: () => onTile('L_q · Clientes en cola'),
                       ),
                     ),
                   ],
@@ -236,6 +252,7 @@ class QueueResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'W_s · Tiempo en sistema',
                         value: result.ws.toStringAsFixed(4),
+                        onTap: () => onTile('W_s · Tiempo en sistema'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -243,6 +260,7 @@ class QueueResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'W_q · Tiempo en cola',
                         value: result.wq.toStringAsFixed(4),
+                        onTap: () => onTile('W_q · Tiempo en cola'),
                       ),
                     ),
                   ],
@@ -267,9 +285,10 @@ class QueueResultsPanel extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _MetricTile(
-                          label: 'λ_eff · Llegada efectiva',
+                          label: 'λ_{eff} · Llegada efectiva',
                           value: result.lambdaEff!.toStringAsFixed(4),
                           accent: true,
+                          onTap: () => onTile('λ_{eff} · Llegada efectiva'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -278,6 +297,7 @@ class QueueResultsPanel extends StatelessWidget {
                           label: 'Tasa de pérdida',
                           value: result.lossRate!.toStringAsFixed(4),
                           accent: true,
+                          onTap: () => onTile('Tasa de pérdida'),
                         ),
                       ),
                     ],
@@ -289,6 +309,10 @@ class QueueResultsPanel extends StatelessWidget {
                         '${result.blockingProbability!.toStringAsFixed(4)}  (${(result.blockingProbability! * 100).toStringAsFixed(2)}%)',
                     accent: true,
                     fullWidth: true,
+                    onTap:
+                        () => onTile(
+                          'P(N) · Probabilidad de bloqueo (sistema lleno)',
+                        ),
                   ),
                 ],
               ],
@@ -352,8 +376,7 @@ class QueueResultsPanel extends StatelessWidget {
                     _StepItem(
                       title: '4. Clientes Esperados en la Cola (L_q)',
                       formula: 'L_q = W_q · λ_eff',
-                      substitution:
-                          'L_q = $wqFixed · $effLambdaStr = $lqFixed',
+                      substitution: 'L_q = $wqFixed · $effLambdaStr = $lqFixed',
                       description:
                           'Cantidad media de clientes que esperan en la línea antes de ser atendidos por los servidores.',
                       valueText: result.lq.toStringAsFixed(4),
@@ -362,8 +385,7 @@ class QueueResultsPanel extends StatelessWidget {
                     _StepItem(
                       title: '5. Tiempo Esperado en el Sistema (W_s)',
                       formula: 'W_s = W_q + (1 / μ)',
-                      substitution:
-                          'W_s = $wqFixed + (1 / $muStr) = $wsFixed',
+                      substitution: 'W_s = $wqFixed + (1 / $muStr) = $wsFixed',
                       description:
                           'Tiempo total promedio que un cliente pasa dentro del sistema desde que llega hasta que se marcha.',
                       valueText: result.ws.toStringAsFixed(4),
@@ -372,8 +394,7 @@ class QueueResultsPanel extends StatelessWidget {
                     _StepItem(
                       title: '6. Tiempo Esperado en la Cola (W_q)',
                       formula: 'W_q = L_q / λ_eff',
-                      substitution:
-                          'W_q = $lqFixed / $effLambdaStr = $wqFixed',
+                      substitution: 'W_q = $lqFixed / $effLambdaStr = $wqFixed',
                       description:
                           'Tiempo medio que un cliente debe esperar en la fila antes de iniciar su servicio.',
                       valueText: result.wq.toStringAsFixed(4),
@@ -399,7 +420,9 @@ class QueueResultsPanel extends StatelessWidget {
                             'P_N = $p0Fixed · ($rhoStr)^(${result.capacity!}) = ${_formatFixed(result.blockingProbability!)}',
                         description:
                             'Probabilidad de que el sistema alcance su capacidad máxima N y se rechace la llegada.',
-                        valueText: result.blockingProbability!.toStringAsFixed(4),
+                        valueText: result.blockingProbability!.toStringAsFixed(
+                          4,
+                        ),
                       ),
                     ],
                   ],
@@ -418,40 +441,73 @@ class _MetricTile extends StatelessWidget {
   final String value;
   final bool accent;
   final bool fullWidth;
+  final VoidCallback? onTap;
 
   const _MetricTile({
     required this.label,
     required this.value,
     this.accent = false,
     this.fullWidth = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: fullWidth ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    final interactive = onTap != null;
+    final borderColor =
+        accent
+            ? (interactive ? AppColors.primaryLight : AppColors.primaryLight)
+            : (interactive
+                ? AppColors.primary.withValues(alpha: 0.30)
+                : AppColors.border);
+
+    return Ink(
       decoration: BoxDecoration(
         color: accent ? AppColors.surfaceAlt : AppColors.surface,
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(
-          color: accent ? AppColors.primaryLight : AppColors.border,
-        ),
+        border: Border.all(color: borderColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RichText(
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              style: AppTextStyles.label,
-              children: _parseFormulaSpans(label, AppTextStyles.label),
-            ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(11),
+        splashColor: AppColors.primaryLight.withValues(alpha: 0.20),
+        highlightColor: AppColors.primary.withValues(alpha: 0.05),
+        child: Container(
+          width: fullWidth ? double.infinity : null,
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        style: AppTextStyles.label,
+                        children: _parseFormulaSpans(
+                          label,
+                          AppTextStyles.label,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (interactive) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 14,
+                      color: AppColors.primary.withValues(alpha: 0.55),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 5),
+              Text(value, style: AppTextStyles.momentValue),
+            ],
           ),
-          const SizedBox(height: 5),
-          Text(value, style: AppTextStyles.momentValue),
-        ],
+        ),
       ),
     );
   }

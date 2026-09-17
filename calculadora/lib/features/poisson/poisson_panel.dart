@@ -14,6 +14,7 @@ import '../../utils/validators.dart';
 import 'poisson_calculator.dart';
 import '../../core/widgets/explanation_bottom_sheet.dart';
 import '../calculator/probability_pdf_report.dart';
+import 'poisson_stat_procedures.dart';
 
 /// Panel del módulo Poisson.
 class PoissonPanel extends StatefulWidget {
@@ -258,7 +259,10 @@ class _PoissonPanelState extends State<PoissonPanel> {
                 ),
               ),
               const SizedBox(height: 8),
-              StatSummaryGrid(result: _result!),
+              StatSummaryGrid(
+                result: _result!,
+                procedures: PoissonStatProcedures.build(_result!),
+              ),
               const SizedBox(height: 16),
               DistributionGraphContainer(
                 result: _result!,

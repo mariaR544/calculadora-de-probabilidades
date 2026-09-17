@@ -14,6 +14,7 @@ import '../../utils/validators.dart';
 import 'exponential_calculator.dart';
 import '../../core/widgets/explanation_bottom_sheet.dart';
 import '../calculator/probability_pdf_report.dart';
+import 'exponential_stat_procedures.dart';
 
 /// Panel del módulo Exponencial.
 class ExponentialPanel extends StatefulWidget {
@@ -258,7 +259,10 @@ class _ExponentialPanelState extends State<ExponentialPanel> {
                 ),
               ),
               const SizedBox(height: 8),
-              StatSummaryGrid(result: _result!),
+              StatSummaryGrid(
+                result: _result!,
+                procedures: ExponentialStatProcedures.build(_result!),
+              ),
               const SizedBox(height: 16),
               DistributionGraphContainer(
                 result: _result!,

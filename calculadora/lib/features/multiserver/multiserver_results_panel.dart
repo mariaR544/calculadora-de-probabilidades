@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/stat_procedure_dialog.dart';
 import '../../models/multiserver_queue_result.dart';
+import 'multiserver_stat_procedures.dart';
 
 /// Formatea un número decimal eliminando ceros innecesarios al final
 String _formatNum(double v) {
@@ -153,6 +155,16 @@ class MultiserverResultsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Genera procedimientos y construye mapa label → procedimiento
+    final procs = MultiserverStatProcedures.build(result);
+    final procMap = {for (final p in procs) p.statLabel: p};
+
+    void onTile(String label) {
+      final proc = procMap[label];
+      if (proc == null) return;
+      StatProcedureDialog.show(context, procedure: proc);
+    }
+
     final double effLambda = result.lambdaEff ?? result.lambda;
     final String lambdaStr = _formatNum(result.lambda);
     final String muStr = _formatNum(result.mu);
@@ -200,8 +212,10 @@ class MultiserverResultsPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('MÉTRICAS DEL SISTEMA MULTICANAL',
-                    style: AppTextStyles.label),
+                const Text(
+                  'MÉTRICAS DEL SISTEMA MULTICANAL',
+                  style: AppTextStyles.label,
+                ),
                 const SizedBox(height: 4),
                 Text(result.parameterSummary, style: AppTextStyles.subtitle),
                 const SizedBox(height: 14),
@@ -214,6 +228,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                         label: 'ρ · Utilización',
                         value:
                             '${result.rho.toStringAsFixed(4)} (${(result.rho * 100).toStringAsFixed(2)}%)',
+                        onTap: () => onTile('ρ · Utilización'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -222,6 +237,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                         label: 'P_0 · Sistema vacío',
                         value:
                             '${result.p0.toStringAsFixed(4)} (${(result.p0 * 100).toStringAsFixed(2)}%)',
+                        onTap: () => onTile('P₀ · Sistema vacío'),
                       ),
                     ),
                   ],
@@ -233,6 +249,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'L_s · Clientes en sistema',
                         value: result.ls.toStringAsFixed(4),
+                        onTap: () => onTile('L_s · Clientes en sistema'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -240,6 +257,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'L_q · Clientes en cola',
                         value: result.lq.toStringAsFixed(4),
+                        onTap: () => onTile('L_q · Clientes en cola'),
                       ),
                     ),
                   ],
@@ -251,6 +269,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'W_s · Tiempo en sistema',
                         value: result.ws.toStringAsFixed(4),
+                        onTap: () => onTile('W_s · Tiempo en sistema'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -258,6 +277,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                       child: _MetricTile(
                         label: 'W_q · Tiempo en cola',
                         value: result.wq.toStringAsFixed(4),
+                        onTap: () => onTile('W_q · Tiempo en cola'),
                       ),
                     ),
                   ],
@@ -270,11 +290,16 @@ class MultiserverResultsPanel extends StatelessWidget {
                 // Sección de servidores
                 Row(
                   children: const [
-                    Icon(Icons.people_outline_rounded,
-                        size: 16, color: AppColors.primary),
+                    Icon(
+                      Icons.people_outline_rounded,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 6),
-                    Text('ESTADO DE LOS SERVIDORES (c = can.)',
-                        style: AppTextStyles.label),
+                    Text(
+                      'ESTADO DE LOS SERVIDORES (c = can.)',
+                      style: AppTextStyles.label,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -285,6 +310,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                         label: 'Servidores activos (ocupados)',
                         value: result.activeServers.toStringAsFixed(4),
                         accent: true,
+                        onTap: () => onTile('Servidores activos (ocupados)'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -293,6 +319,8 @@ class MultiserverResultsPanel extends StatelessWidget {
                         label: 'c̄ · Servidores inactivos (ociosos)',
                         value: result.idleServers.toStringAsFixed(4),
                         accent: true,
+                        onTap:
+                            () => onTile('c̄ · Servidores inactivos (ociosos)'),
                       ),
                     ),
                   ],
@@ -305,8 +333,11 @@ class MultiserverResultsPanel extends StatelessWidget {
                   const SizedBox(height: 14),
                   Row(
                     children: const [
-                      Icon(Icons.block_rounded,
-                          size: 15, color: AppColors.primary),
+                      Icon(
+                        Icons.block_rounded,
+                        size: 15,
+                        color: AppColors.primary,
+                      ),
                       SizedBox(width: 6),
                       Text('CAPACIDAD FINITA (N)', style: AppTextStyles.label),
                     ],
@@ -316,9 +347,10 @@ class MultiserverResultsPanel extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _MetricTile(
-                          label: 'λ_eff · Llegada efectiva',
+                          label: 'λ_{eff} · Llegada efectiva',
                           value: result.lambdaEff!.toStringAsFixed(4),
                           accent: true,
+                          onTap: () => onTile('λ_{eff} · Llegada efectiva'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -327,6 +359,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                           label: 'Tasa de pérdida',
                           value: result.lossRate!.toStringAsFixed(4),
                           accent: true,
+                          onTap: () => onTile('Tasa de pérdida'),
                         ),
                       ),
                     ],
@@ -338,6 +371,10 @@ class MultiserverResultsPanel extends StatelessWidget {
                         '${result.blockingProbability!.toStringAsFixed(4)}  (${(result.blockingProbability! * 100).toStringAsFixed(2)}%)',
                     accent: true,
                     fullWidth: true,
+                    onTap:
+                        () => onTile(
+                          'P_N · Probabilidad de bloqueo (sistema lleno)',
+                        ),
                   ),
                 ],
               ],
@@ -419,8 +456,7 @@ class MultiserverResultsPanel extends StatelessWidget {
                     _StepItem(
                       title: '6. Tiempo Esperado en el Sistema (W_s)',
                       formula: 'W_s = W_q + (1 / μ)',
-                      substitution:
-                          'W_s = $wqFixed + (1 / $muStr) = $wsFixed',
+                      substitution: 'W_s = $wqFixed + (1 / $muStr) = $wsFixed',
                       description:
                           'Tiempo total promedio que un cliente pasa dentro del sistema multicanal.',
                       valueText: result.ws.toStringAsFixed(4),
@@ -475,7 +511,9 @@ class MultiserverResultsPanel extends StatelessWidget {
                             'P_N = (($rFixed)^${result.capacity!} / ($c! · $c^(${result.capacity! - c}))) · $p0Fixed = ${_formatFixed(result.blockingProbability!)}',
                         description:
                             'Probabilidad de que el sistema alcance su capacidad máxima N y se rechace la llegada.',
-                        valueText: result.blockingProbability!.toStringAsFixed(4),
+                        valueText: result.blockingProbability!.toStringAsFixed(
+                          4,
+                        ),
                       ),
                     ],
                   ],
@@ -494,51 +532,80 @@ class _MetricTile extends StatelessWidget {
   final String value;
   final bool accent;
   final bool fullWidth;
+  final VoidCallback? onTap;
 
   const _MetricTile({
     required this.label,
     required this.value,
     this.accent = false,
     this.fullWidth = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: fullWidth ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    final interactive = onTap != null;
+    final borderColor =
+        accent
+            ? AppColors.primaryLight
+            : (interactive
+                ? AppColors.primary.withValues(alpha: 0.30)
+                : AppColors.border);
+
+    return Ink(
       decoration: BoxDecoration(
         color: accent ? AppColors.surfaceAlt : AppColors.surface,
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(
-          color: accent ? AppColors.primaryLight : AppColors.border,
-        ),
+        border: Border.all(color: borderColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RichText(
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              style:
-                  AppTextStyles.subtitle.copyWith(fontSize: 11.5),
-              children: _parseFormulaSpans(
-                label,
-                AppTextStyles.subtitle.copyWith(fontSize: 11.5),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(11),
+        splashColor: AppColors.primaryLight.withValues(alpha: 0.20),
+        highlightColor: AppColors.primary.withValues(alpha: 0.05),
+        child: Container(
+          width: fullWidth ? double.infinity : null,
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        style: AppTextStyles.subtitle.copyWith(fontSize: 11.5),
+                        children: _parseFormulaSpans(
+                          label,
+                          AppTextStyles.subtitle.copyWith(fontSize: 11.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (interactive) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 14,
+                      color: AppColors.primary.withValues(alpha: 0.55),
+                    ),
+                  ],
+                ],
               ),
-            ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: AppTextStyles.title.copyWith(
+                  fontSize: 16,
+                  color: accent ? AppColors.primaryDark : AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTextStyles.title.copyWith(
-              fontSize: 16,
-              color: accent ? AppColors.primaryDark : AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -168,34 +168,124 @@ class MultiserverPdfReport {
     );
   }
 
+  static String _formatSubscriptLabel(String text) {
+    return text
+        .replaceAll('P_0', 'P₀')
+        .replaceAll('P_{0}', 'P₀')
+        .replaceAll('L_s', 'Lₛ')
+        .replaceAll('L_{s}', 'Lₛ')
+        .replaceAll('L_q', 'Lᵩ')
+        .replaceAll('L_{q}', 'Lᵩ')
+        .replaceAll('W_s', 'Wₛ')
+        .replaceAll('W_{s}', 'Wₛ')
+        .replaceAll('W_q', 'Wᵩ')
+        .replaceAll('W_{q}', 'Wᵩ')
+        .replaceAll('_0', '₀')
+        .replaceAll('_{0}', '₀')
+        .replaceAll('_s', 'ₛ')
+        .replaceAll('_{s}', 'ₛ')
+        .replaceAll('_q', 'ᵩ')
+        .replaceAll('_{q}', 'ᵩ');
+  }
+
+  static pw.Widget _buildMetricTile(String label, String value) {
+    final labelStyle = pw.TextStyle(
+      font: PdfFonts.regular,
+      fontFallback: PdfFonts.fontFallback,
+      fontSize: 9.5,
+      color: kTextSecondary,
+    );
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 9),
+      decoration: pw.BoxDecoration(
+        color: kSurfaceAlt,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: kBorder, width: 0.5),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.Text(
+            _formatSubscriptLabel(label),
+            style: labelStyle,
+          ),
+          pw.SizedBox(height: 3),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              font: PdfFonts.bold,
+              fontFallback: PdfFonts.fontFallback,
+              fontSize: 10.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static pw.Widget _buildMetricsSection(MultiserverQueueResult result) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         buildPdfSectionTitle('Métricas del sistema multicanal'),
-        buildPdfMetricRow(
-          'ρ · Utilización nominal',
-          '${_fix(result.rho)} (${(result.rho * 100).toStringAsFixed(2)}%)',
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: _buildMetricTile(
+                'ρ · Utilización nominal',
+                '${_fix(result.rho)} (${(result.rho * 100).toStringAsFixed(2)}%)',
+              ),
+            ),
+            pw.SizedBox(width: 8),
+            pw.Expanded(
+              child: _buildMetricTile(
+                'P₀ · Probabilidad de sistema vacío',
+                '${_fix(result.p0)} (${(result.p0 * 100).toStringAsFixed(2)}%)',
+              ),
+            ),
+          ],
         ),
-        buildPdfMetricRow(
-          'P_0 · Probabilidad de sistema vacío',
-          '${_fix(result.p0)} (${(result.p0 * 100).toStringAsFixed(2)}%)',
+        pw.SizedBox(height: 6),
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: _buildMetricTile(
+                'Lₛ · Clientes esperados en el sistema',
+                _fix(result.ls),
+              ),
+            ),
+            pw.SizedBox(width: 8),
+            pw.Expanded(
+              child: _buildMetricTile(
+                'Lᵩ · Clientes esperados en la cola',
+                _fix(result.lq),
+              ),
+            ),
+          ],
         ),
-        buildPdfMetricRow(
-          'L_s · Clientes esperados en el sistema',
-          _fix(result.ls),
-        ),
-        buildPdfMetricRow(
-          'L_q · Clientes esperados en la cola',
-          _fix(result.lq),
-        ),
-        buildPdfMetricRow(
-          'W_s · Tiempo esperado en el sistema',
-          _fix(result.ws),
-        ),
-        buildPdfMetricRow(
-          'W_q · Tiempo esperado en la cola',
-          _fix(result.wq),
+        pw.SizedBox(height: 6),
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: _buildMetricTile(
+                'Wₛ · Tiempo esperado en el sistema',
+                _fix(result.ws),
+              ),
+            ),
+            pw.SizedBox(width: 8),
+            pw.Expanded(
+              child: _buildMetricTile(
+                'Wᵩ · Tiempo esperado en la cola',
+                _fix(result.wq),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -208,13 +298,23 @@ class MultiserverPdfReport {
         buildPdfSectionTitle(
           'Estado de los servidores (c = ${result.servers})',
         ),
-        buildPdfMetricRow(
-          'Servidores activos (ocupados)',
-          _fix(result.activeServers),
-        ),
-        buildPdfMetricRow(
-          'c̄ · Servidores inactivos (ociosos)',
-          _fix(result.idleServers),
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: _buildMetricTile(
+                'Servidores activos (ocupados)',
+                _fix(result.activeServers),
+              ),
+            ),
+            pw.SizedBox(width: 8),
+            pw.Expanded(
+              child: _buildMetricTile(
+                'c̄ · Servidores inactivos (ociosos)',
+                _fix(result.idleServers),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -225,15 +325,26 @@ class MultiserverPdfReport {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         buildPdfSectionTitle('Capacidad finita (N = ${result.capacity})'),
-        buildPdfMetricRow(
-          'λ_{eff} · Tasa de llegada efectiva',
-          _fix(result.lambdaEff!),
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: _buildMetricTile(
+                'λ_{eff} · Tasa de llegada efectiva',
+                _fix(result.lambdaEff!),
+              ),
+            ),
+            pw.SizedBox(width: 8),
+            pw.Expanded(
+              child: _buildMetricTile(
+                'Tasa de pérdida de clientes',
+                _fix(result.lossRate!),
+              ),
+            ),
+          ],
         ),
-        buildPdfMetricRow(
-          'Tasa de pérdida de clientes',
-          _fix(result.lossRate!),
-        ),
-        buildPdfMetricRow(
+        pw.SizedBox(height: 6),
+        _buildMetricTile(
           'P_N · Probabilidad de bloqueo (sistema lleno)',
           '${_fix(result.blockingProbability!)} (${(result.blockingProbability! * 100).toStringAsFixed(2)}%)',
         ),
