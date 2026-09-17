@@ -87,24 +87,14 @@ Cada módulo comparte, en la medida en que aplica, un conjunto de funciones comu
 Desarrollo completo de la aplicación: diseño de la interfaz, implementación de la lógica de cálculo para cada modelo probabilístico y de teoría de colas, generación de las ventanas de procedimiento y desgloses teóricos, construcción de las gráficas e interpretación de resultados, así como la funcionalidad de exportación a PDF e impresión.
 
 ##  Capturas de pantalla
-
-<img width="591" height="1280" alt="photo_1_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/21bdf9ae-0187-4570-adc9-3b2c566a6439" />
-<img width="591" height="1280" alt="photo_2_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/63652d3c-988f-4001-8d39-730b0feadd38" />
-<img width="591" height="1280" alt="photo_3_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/32ea281c-b7b8-4241-80c3-3dde3c8dd9ce" />
-<img width="591" height="1280" alt="photo_4_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/7f4a5262-195b-48af-9ae5-027902a0cdc9" />
-<img width="591" height="1280" alt="photo_5_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/09951f52-d3d0-4ebb-bc37-4f6f6a50878c" />
-<img width="591" height="1280" alt="photo_6_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/cd6734b5-77fc-441d-9995-5a839e1e48d5" />
-<img width="591" height="1280" alt="photo_7_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/55bd4e6e-86a2-4928-be61-4dac0cfd4ea2" />
-<img width="591" height="1280" alt="photo_8_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/353babbd-7f71-4cf1-9815-5b9fa8837b38" />
-<img width="591" height="1280" alt="photo_9_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/8335c985-0a04-43ba-b396-01e67eb0f35b" />
-<img width="591" height="1280" alt="photo_10_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/1da25cf2-58d7-4bcd-a699-df736cfc5274" />
-<img width="591" height="1280" alt="photo_11_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/a3d66c8f-8a75-482a-9864-ae2cf8dea031" />
-<img width="591" height="1280" alt="photo_12_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/8bd67684-49c0-4bb0-989f-0e2dfc0e67ed" />
-<img width="591" height="1280" alt="photo_13_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/19385134-790c-49fc-a261-671a0fe91398" />
-<img width="591" height="1280" alt="photo_14_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/38376e08-c25c-4cac-a907-9985073d3af4" />
-<img width="591" height="1280" alt="photo_15_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/1e6bfd34-cd76-4ff0-930d-4c77b2b9d1b1" />
-<img width="591" height="1280" alt="photo_16_2026-09-16_21-12-30" src="https://github.com/user-attachments/assets/22f452e7-dae2-4bd5-b7a2-cb01da1f71f6" />
-
+Módulo 1: Probabilidades
+<p align="center"> <img width="180" alt="photo_1" src="https://github.com/user-attachments/assets/21bdf9ae-0187-4570-adc9-3b2c566a6439" /> <img width="180" alt="photo_2" src="https://github.com/user-attachments/assets/63652d3c-988f-4001-8d39-730b0feadd38" /> <img width="180" alt="photo_3" src="https://github.com/user-attachments/assets/32ea281c-b7b8-4241-80c3-3dde3c8dd9ce" /> <img width="180" alt="photo_4" src="https://github.com/user-attachments/assets/7f4a5262-195b-48af-9ae5-027902a0cdc9" /> </p>
+Módulo 2: Líneas de espera
+<p align="center"> <img width="180" alt="photo_5" src="https://github.com/user-attachments/assets/09951f52-d3d0-4ebb-bc37-4f6f6a50878c" /> <img width="180" alt="photo_6" src="https://github.com/user-attachments/assets/cd6734b5-77fc-441d-9995-5a839e1e48d5" /> <img width="180" alt="photo_7" src="https://github.com/user-attachments/assets/55bd4e6e-86a2-4928-be61-4dac0cfd4ea2" /> <img width="180" alt="photo_8" src="https://github.com/user-attachments/assets/353babbd-7f71-4cf1-9815-5b9fa8837b38" /> </p>
+Módulo 3: Multiservidor
+<p align="center"> <img width="180" alt="photo_9" src="https://github.com/user-attachments/assets/8335c985-0a04-43ba-b396-01e67eb0f35b" /> <img width="180" alt="photo_10" src="https://github.com/user-attachments/assets/1da25cf2-58d7-4bcd-a699-df736cfc5274" /> <img width="180" alt="photo_11" src="https://github.com/user-attachments/assets/a3d66c8f-8a75-482a-9864-ae2cf8dea031" /> <img width="180" alt="photo_12" src="https://github.com/user-attachments/assets/8bd67684-49c0-4bb0-989f-0e2dfc0e67ed" /> </p>
+Módulo 4: Simulación de Monte Carlo
+<p align="center"> <img width="180" alt="photo_13" src="https://github.com/user-attachments/assets/19385134-790c-49fc-a261-671a0fe91398" /> <img width="180" alt="photo_14" src="https://github.com/user-attachments/assets/38376e08-c25c-4cac-a907-9985073d3af4" /> <img width="180" alt="photo_15" src="https://github.com/user-attachments/assets/1e6bfd34-cd76-4ff0-930d-4c77b2b9d1b1" /> <img width="180" alt="photo_16" src="https://github.com/user-attachments/assets/22f452e7-dae2-4bd5-b7a2-cb01da1f71f6" /> </p>
 
 ##  Instalación y uso
 
